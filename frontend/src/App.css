@@ -1,0 +1,94 @@
+.layout {
+  display: flex;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+.sidebar {
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.viewer {
+  margin-left: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.frame {
+  width: 512px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+}
+
+/* Timeline bar */
+.timeline-container {
+  width: 512px;
+  height: 20px;
+  display: flex;
+  border: 1px solid #999;
+}
+
+.timeline-cell {
+  flex: 1;
+  cursor: pointer;
+}
+
+/* Colors */
+.green {
+  background-color: #32cd32;
+}
+.white {
+  background-color: #ffffff;
+}
+.red {
+  background-color: #ff4444;
+}
+
+/* Label buttons */
+.label-good {
+  background: #32cd32;
+  padding: 8px;
+}
+
+.label-unlabeled {
+  background: #cccccc;
+  padding: 8px;
+}
+
+.label-bad {
+  background: #ff4444;
+  padding: 8px;
+}
+
+.mode-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.mode-btn {
+  padding: 8px;
+  border: 1px solid #888;
+  background: #ddd;
+}
+
+.active-green {
+  background: #32cd32 !important;
+}
+.active-white {
+  background: white !important;
+}
+.active-red {
+  background: #ff4444 !important;
+}
+.clear-btn {
+  margin-top: 20px;
+  padding: 10px;
+  background: #ff5555;
+  color: white;
+  border: none;
+  cursor: pointer;
+}

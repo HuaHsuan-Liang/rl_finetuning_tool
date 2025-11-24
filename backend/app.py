@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-HDF5_PATH = "/media/hua-hsuan/67125225-ddbb-45ec-94db-aad3db122a1b/columbia/roamlab/rl_web/datasets/two_arm_threading.hdf5"  # update this
+HDF5_PATH = "/ssd01/wilson/rlhf/robomimic_old/robomimic/datasets/square/finetune/bc_rollouts.hdf5"  # update this
 h5 = h5py.File(HDF5_PATH, "a")
 
 app = FastAPI()

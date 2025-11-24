@@ -2,13 +2,17 @@
   display: flex;
   font-family: Arial, sans-serif;
   padding: 20px;
+  flex-direction: row;
+  gap: 20px;
 }
 
+
+
 .sidebar {
-  width: 260px;
+  width: 200px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
 }
 
 .viewer {
@@ -19,17 +23,21 @@
 }
 
 .frame {
-  width: 512px;
+  width: 300px;
   border: 1px solid #ccc;
-  margin-bottom: 10px;
+  border-radius: 6px;
 }
-
 /* Timeline bar */
 .timeline-container {
-  width: 512px;
-  height: 20px;
+  position: fixed;
+  bottom: 20px;
+  left: 250px;
+  right: 20px;
+  height: 30px;
+  width: 80%;
   display: flex;
-  border: 1px solid #999;
+  border: 2px solid #ccc;
+  
 }
 
 .timeline-cell {
@@ -92,3 +100,21 @@
   border: none;
   cursor: pointer;
 }
+
+
+.viewer-multi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  max-width: 1000px;
+}
+
+.camera-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+
+

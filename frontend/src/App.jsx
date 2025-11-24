@@ -8,26 +8,33 @@ export default function App() {
   const [demo, setDemo] = useState("");
 
   const [cameras, setCameras] = useState([]);
-  const [camera, setCamera] = useState("");
-
   const [length, setLength] = useState(0);
   const [t, setT] = useState(0);
 
   const [labels, setLabels] = useState([]);
 
-  // Label mode: 1 = good, 0 = bad
+  // Label mode: 1 = good, -1 = bad, 0 unused
   const [labelMode, setLabelMode] = useState(1);
 
   const [playing, setPlaying] = useState(false);
   const FPS = 10;
   const intervalRef = useRef(null);
 
+  // Load demo list
   useEffect(() => {
     fetch(`${BACKEND}/demos`)
       .then((r) => r.json())
-      .then((d) => setDemos(d.demos));
+      .then((d) => {
+        const sorted = d.demos.sort((a, b) => {
+          const na = parseInt(a.replace("demo_", ""));
+          const nb = parseInt(b.replace("demo_", ""));
+          return na - nb;
+        });
+        setDemos(sorted);
+      });
   }, []);
 
+  // Load metadata when demo changes
   useEffect(() => {
     if (!demo) return;
 
@@ -40,22 +47,14 @@ export default function App() {
 
     fetch(`${BACKEND}/demo/${demo}/cameras`)
       .then((r) => r.json())
-      .then((d) => {
-        setCameras(d.cameras);
-        setCamera(d.cameras[0]);
-      });
+      .then((d) => setCameras(d.cameras));
 
     fetch(`${BACKEND}/demo/${demo}/labels`)
       .then((r) => r.json())
       .then((d) => setLabels(d.labels));
   }, [demo]);
 
-  const frameURL =
-    demo && camera
-      ? `${BACKEND}/frame?demo=${demo}&t=${t}&camera=${camera}`
-      : "";
-
-  // Apply label to only one frame (called during PLAY)
+  // Apply label to a frame
   function applyLabel(idx, mode) {
     if (!demo) return;
 
@@ -70,32 +69,42 @@ export default function App() {
     });
   }
 
-  // Label mode ref to avoid stale closure in interval
+  // Keep label mode fresh inside interval
   const labelModeRef = useRef(labelMode);
-
   useEffect(() => {
     labelModeRef.current = labelMode;
   }, [labelMode]);
 
+  // PLAY / PAUSE
   function togglePlay() {
-    if (!playing) {
-      intervalRef.current = setInterval(() => {
-        setT((prev) => {
-          if (length <= 0) return prev;
-
-          const next = prev + 1 >= length ? 0 : prev + 1;
-
-          // Use the UPDATED label mode here
-          applyLabel(next, labelModeRef.current);
-
-          return next;
-        });
-      }, 1000 / FPS);
-      setPlaying(true);
-    } else {
+    if (playing) {
       clearInterval(intervalRef.current);
+      intervalRef.current = null;
       setPlaying(false);
+      return;
     }
+
+    if (intervalRef.current) return;
+
+    intervalRef.current = setInterval(() => {
+      setT((prev) => {
+        if (length <= 0) return prev;
+
+        const next = prev + 1;
+
+        if (next >= length) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+          setPlaying(false);
+          return prev;
+        }
+
+        applyLabel(prev, labelModeRef.current);
+        return next;
+      });
+    }, 1000 / FPS);
+
+    setPlaying(true);
   }
 
   function handleSliderChange(e) {
@@ -106,7 +115,7 @@ export default function App() {
     setT(idx);
   }
 
-  // 🔥 NEW: Clear all labels
+  // Clear all labels
   function clearAllLabels() {
     if (!demo) return;
 
@@ -127,16 +136,7 @@ export default function App() {
           ))}
         </select>
 
-        <h3>Camera</h3>
-        <select value={camera} onChange={(e) => setCamera(e.target.value)}>
-          {cameras.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-
-        <h3>
-          Frame: {t} / {Math.max(0, length - 1)}
-        </h3>
+        <h3>Frame: {t} / {Math.max(0, length - 1)}</h3>
         <input
           type="range"
           min={0}
@@ -151,7 +151,6 @@ export default function App() {
 
         <h3>Label Mode</h3>
         <div className="mode-buttons">
-
           <button
             className={"mode-btn " + (labelMode === 1 ? "active-green" : "")}
             onClick={() => setLabelMode(1)}
@@ -165,33 +164,39 @@ export default function App() {
           >
             BAD (-1)
           </button>
-
         </div>
 
-        {/* 🔥 NEW button */}
-        <button
-          className="clear-btn"
-          onClick={clearAllLabels}
-        >
-          CLEAR ALL LABELS (set all to 0)
+        <button className="clear-btn" onClick={clearAllLabels}>
+          CLEAR ALL LABELS (0)
         </button>
       </div>
 
-      <div className="viewer">
-        {frameURL && <img className="frame" src={frameURL} />}
-
-        <div className="timeline-container">
-          {labels.map((lb, idx) => (
-            <div
-              key={idx}
-              className={
-                "timeline-cell " +
-                (lb === 1 ? "green" : lb === 0 ? "white" : "red")
-              }
-              onClick={() => jumpToFrame(idx)}
+      {/* 🔥 MULTI-CAMERA VIEW */}
+      <div className="viewer-multi">
+        {cameras.map((cam) => (
+          <div key={cam} className="camera-block">
+            <h4>{cam}</h4>
+            <img
+              className="frame"
+              src={`${BACKEND}/frame?demo=${demo}&t=${t}&camera=${cam}`}
+              alt={cam}
             />
-          ))}
-        </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 🔥 TIMELINE */}
+      <div className="timeline-container">
+        {labels.map((lb, idx) => (
+          <div
+            key={idx}
+            className={
+              "timeline-cell " +
+              (lb === 1 ? "green" : lb === 0 ? "white" : "red")
+            }
+            onClick={() => jumpToFrame(idx)}
+          />
+        ))}
       </div>
     </div>
   );
